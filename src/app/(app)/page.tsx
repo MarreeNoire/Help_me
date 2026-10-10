@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SosButton from "@/components/SosButton";
+import InstallPwaButton from "@/components/InstallPwaButton";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -35,6 +36,9 @@ export default async function HomePage() {
         hasContacts={(contacts ?? []).length > 0}
         fallbackContacts={contacts ?? []}
       />
+      <div className="px-4">
+        <InstallPwaButton />
+      </div>
     </main>
   );
 }

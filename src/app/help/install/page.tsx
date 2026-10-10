@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import InstallPwaButton from "@/components/InstallPwaButton";
 
 export const metadata: Metadata = { title: "Installer Help_me" };
 
@@ -11,6 +12,12 @@ export default function InstallHelpPage() {
         Help_me s'installe comme une application, sans passer par un store. C'est nécessaire sur iPhone pour recevoir
         les notifications.
       </p>
+
+      <p className="rounded-2xl bg-emerald-500/10 p-3 text-sm text-emerald-200">
+        👆 Sur Android/Chrome, le bouton ci-dessous lance l'installation directement. Sur iPhone, il t'explique comment
+        faire (Safari n'autorise pas l'installation automatique).
+      </p>
+      <InstallPwaButton />
 
       <section className="card space-y-2">
         <h2 className="text-lg font-bold">🤖 Android (Chrome)</h2>
