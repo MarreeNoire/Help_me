@@ -8,7 +8,12 @@ export const EMERGENCY = {
 } as const;
 
 export function appUrl() {
-  return (process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000").replace(/\/$/, "");
+  const configured = process.env.NEXT_PUBLIC_APP_URL;
+  if (configured) return configured.replace(/\/$/, "");
+  // Repli : URL fournie automatiquement par Vercel (évite les liens localhost en prod)
+  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  if (vercel) return `https://${vercel.replace(/\/$/, "")}`;
+  return "http://localhost:3000";
 }
 
 export function mapsLink(loc: LatLng) {
