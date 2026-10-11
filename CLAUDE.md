@@ -145,6 +145,8 @@ Anti-pause Supabase (gratuit) : tâche cron-job.org sur `https://TON-DOMAINE/api
 
 ## 12. Journal des modifications
 
+- 2026-10-11 : Clarification du parcours d'alerte automatique dans Help_me : les proches ayant un compte lié sont indiqués comme destinataires in-app, l'activation des notifications push est expliquée, et WhatsApp/SMS sont présentés comme options facultatives. La réception avec l'app fermée reste soumise à l'autorisation de notifications et aux capacités du téléphone.
+
 - 2026-10-10 : Ajout du support de déploiement Cloudflare Workers via @opennextjs/cloudflare (wrangler.jsonc, open-next.config.ts, scripts npm cf-preview/cf-deploy). Déploiement effectif à faire par LS (wrangler login).
 
 - 2026-10-09 : Création initiale du projet (structure complète : auth, onboarding, bouton SOS, contacts, notifiers Telegram + Push, suivi live, invitations, réception in-app, PWA, schéma SQL). Code écrit sans exécution locale : lancer `npm install` puis `npm run dev` et corriger d'éventuelles erreurs de build.

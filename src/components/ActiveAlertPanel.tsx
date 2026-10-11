@@ -16,7 +16,7 @@ export default function ActiveAlertPanel({
   const [copied, setCopied] = useState(false);
 
   const manual = alert.contacts.filter((c) => c.phone);
-  const hasAuto = alert.contacts.some((c) => c.telegram || c.push);
+  const hasAuto = alert.contacts.some((c) => c.linked || c.telegram || c.push);
 
   async function copy() {
     try {
@@ -61,11 +61,11 @@ export default function ActiveAlertPanel({
                 <div>
                   <p className="font-semibold">{c.name}</p>
                   <p className="text-xs text-white/70">
-                    {c.telegram || c.push
-                      ? [c.telegram && "Telegram ✅", c.push && "Notification ✅"].filter(Boolean).join(" · ")
+                    {c.linked || c.telegram || c.push
+                      ? [c.linked && "Help_me ✅", c.push && "Notification push ✅", c.telegram && "Telegram ✅"].filter(Boolean).join(" · ")
                       : c.confirmed
-                      ? "Aucun canal automatique joignable"
-                      : "Invitation non confirmée"}
+                      ? "Alerte Help_me non configurée"
+                      : "À relier à son compte Help_me"}
                   </p>
                 </div>
                 {c.waLink && (
@@ -88,7 +88,7 @@ export default function ActiveAlertPanel({
           </ul>
           {!hasAuto && manual.length > 0 && (
             <p className="mt-3 text-sm text-white/80">
-              Aucun proche n'a Telegram ou les notifications : envoie-leur le message avec WhatsApp ou SMS.
+              Pour recevoir l’alerte automatiquement dans Help_me, ton proche doit créer un compte et accepter ton invitation. WhatsApp et SMS restent facultatifs.
             </p>
           )}
         </div>

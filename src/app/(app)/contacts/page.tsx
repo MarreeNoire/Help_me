@@ -82,13 +82,12 @@ export default function ContactsPage() {
     <main className="space-y-5 p-4">
       <h1 className="pt-2 text-2xl font-extrabold">Mes proches</h1>
       <p className="text-sm text-white/60">
-        Ils reçoivent ton alerte avec ta position. Envoie-leur le lien d'invitation pour qu'ils l'acceptent
-        (Telegram, notification ou compte Help_me).
+        Pour recevoir l’alerte directement dans Help_me, ton proche doit avoir un compte et accepter ton invitation. S’il a déjà un compte avec ce numéro, il sera relié automatiquement. WhatsApp sert seulement à partager l’invitation, et reste facultatif.
       </p>
 
       <form onSubmit={add} className="card space-y-3">
         <input className="input" placeholder="Nom du proche" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input className="input" type="tel" placeholder="Téléphone (WhatsApp)" value={phone} onChange={(e) => setPhone(e.target.value)} />
+        <input className="input" type="tel" placeholder="Téléphone du proche (facultatif)" value={phone} onChange={(e) => setPhone(e.target.value)} />
         {error && <p className="text-sm text-red-300">{error}</p>}
         <button className="btn-primary w-full">➕ Ajouter</button>
       </form>
@@ -112,7 +111,7 @@ export default function ContactsPage() {
               <span className={`badge ${c.confirmed ? "!bg-emerald-600/30 !text-emerald-300" : "!bg-amber-500/20 !text-amber-300"}`}>
                 {c.confirmed ? "✅ Confirmé" : "⏳ En attente"}
               </span>
-              {c.linked_user_id && <span className="badge">📱 App</span>}
+              {c.linked_user_id && <span className="badge">📱 Help_me</span>}
               {c.telegram_chat_id && <span className="badge">✈️ Telegram</span>}
               {c.push_subscription && <span className="badge">🔔 Notif.</span>}
             </div>

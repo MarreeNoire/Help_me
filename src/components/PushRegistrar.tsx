@@ -38,7 +38,7 @@ export default function PushRegistrar() {
 
   return (
     <div className="m-4 flex items-center gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
-      <span className="flex-1">🔔 Active les notifications pour recevoir les alertes de tes proches.</span>
+      <span className="flex-1">🔔 Autorise les notifications Help_me pour être averti(e) même quand l’application n’est pas ouverte.</span>
       <button onClick={activate} className="rounded-xl bg-amber-500 px-3 py-2 font-semibold text-black">
         Activer
       </button>

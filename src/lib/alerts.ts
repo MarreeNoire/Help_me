@@ -34,6 +34,7 @@ export async function buildActivePayload(
       name: c.name,
       phone: c.phone,
       confirmed: c.confirmed ?? false,
+      linked: Boolean(c.linked_user_id),
       telegram: sent.some((m) => m.contact_id === c.id && m.channel === "telegram"),
       push: sent.some((m) => m.contact_id === c.id && m.channel === "push"),
       waLink: c.phone ? waLink(c.phone, message) : null,

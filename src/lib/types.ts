@@ -36,6 +36,7 @@ export type ContactDelivery = {
   name: string;
   phone: string | null;
   confirmed: boolean;
+  linked: boolean;
   telegram: boolean;
   push: boolean;
   waLink: string | null;
