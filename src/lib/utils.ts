@@ -8,17 +8,22 @@ export const EMERGENCY = {
 } as const;
 
 export function appUrl() {
-  const configured = process.env.NEXT_PUBLIC_APP_URL;
-  if (configured) return configured.replace(/\/$/, "");
-  // Côté navigateur : l'origine courante est toujours l'URL publique réelle,
-  // même si NEXT_PUBLIC_APP_URL n'était pas définie au moment du build.
+  // 1) Navigateur : l'adresse réellement ouverte est toujours la bonne
+  //    (prioritaire sur la variable d'environnement, qui peut être restée sur localhost).
   if (typeof window !== "undefined" && window.location?.origin?.startsWith("http")) {
     return window.location.origin;
   }
-  // Repli serveur : URL fournie automatiquement par Vercel
+
+  // 2) Serveur : NEXT_PUBLIC_APP_URL, sauf si elle pointe sur localhost alors qu'on est déployé.
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
+  const isLocal = configured ? /localhost|127\.0\.0\.1/.test(configured) : false;
+  if (configured && !isLocal) return configured;
+
+  // 3) Repli serveur : URL fournie automatiquement par Vercel
   const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
   if (vercel) return `https://${vercel.replace(/\/$/, "")}`;
-  return "http://localhost:3000";
+
+  return configured || "http://localhost:3000";
 }
 
 export function mapsLink(loc: LatLng) {
