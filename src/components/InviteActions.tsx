@@ -17,6 +17,7 @@ export default function InviteActions({
   const router = useRouter();
   const [pushDone, setPushDone] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -45,6 +46,25 @@ export default function InviteActions({
     setMsg(null);
     setBusy(true);
     try {
+      // L'acceptation est un geste utilisateur : on en profite pour demander
+      // l'autorisation push et enregistrer l'appareil pour les alertes en arrière-plan.
+      let pushReady = false;
+      if (pushSupported() && Notification.permission !== "denied") {
+        try {
+          const sub = await enablePush();
+          if (sub) {
+            const pushRes = await fetch("/api/push/register", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ subscription: sub.toJSON() }),
+            });
+            pushReady = pushRes.ok;
+          }
+        } catch {
+          // L'acceptation du lien doit rester possible même si le push échoue.
+        }
+      }
+
       const res = await fetch("/api/invite/accept", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,7 +72,16 @@ export default function InviteActions({
       });
       if (res.ok) {
         setAccepted(true);
-        setTimeout(() => router.push("/protect"), 800);
+        setPushStatus(
+          pushReady
+            ? "Notifications activées sur cet appareil."
+            : !pushSupported()
+              ? "Ce navigateur ne prend pas en charge les notifications push ; garde Help_me ouvert pour voir l’alerte."
+              : Notification.permission === "denied"
+                ? "Les notifications sont bloquées dans les réglages du navigateur ; garde Help_me ouvert pour voir l’alerte."
+                : "Autorise les notifications Help_me pour recevoir une alerte quand l’application est fermée."
+        );
+        setTimeout(() => router.push("/protect"), 1800);
       } else {
         const j = await res.json().catch(() => ({}));
         setMsg(j.error === "self_invite" ? "Tu ne peux pas être ton propre proche 😉" : "Échec. Réessaie.");
@@ -64,7 +93,11 @@ export default function InviteActions({
 
   return (
     <div className="space-y-3">
-      {accepted && <p className="rounded-2xl bg-emerald-600/20 p-3 text-center">✅ Compte lié ! Redirection…</p>}
+      {accepted && (
+        <p className="rounded-2xl bg-emerald-600/20 p-3 text-center">
+          ✅ Compte lié ! {pushStatus} Redirection…
+        </p>
+      )}
       {pushDone && (
         <p className="rounded-2xl bg-emerald-600/20 p-3 text-center">
           ✅ Notifications activées. Tu seras alerté(e) sur cet appareil.
@@ -90,7 +123,7 @@ export default function InviteActions({
 
       {loggedIn ? (
         <button onClick={accept} disabled={busy || accepted} className="btn-ghost w-full">
-          📱 Recevoir aussi dans l'application (mon compte)
+          {busy ? "Activation en cours…" : "📱 Accepter et activer les alertes Help_me"}
         </button>
       ) : (
         <Link href={`/login?next=${encodeURIComponent(`/invite/${token}`)}`} className="btn-ghost w-full">

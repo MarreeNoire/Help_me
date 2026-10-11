@@ -145,6 +145,7 @@ Anti-pause Supabase (gratuit) : tâche cron-job.org sur `https://TON-DOMAINE/api
 
 ## 12. Journal des modifications
 
+- 2026-10-11 : À l'acceptation d'une invitation, demande et enregistre aussi les notifications push de l'appareil du gardien ; affiche l'état réel de l'enregistrement et les cas où les notifications sont bloquées ou indisponibles.
 - 2026-10-11 : Clarification du parcours d'alerte automatique dans Help_me : les proches ayant un compte lié sont indiqués comme destinataires in-app, l'activation des notifications push est expliquée, et WhatsApp/SMS sont présentés comme options facultatives. La réception avec l'app fermée reste soumise à l'autorisation de notifications et aux capacités du téléphone.
 
 - 2026-10-10 : Ajout du support de déploiement Cloudflare Workers via @opennextjs/cloudflare (wrangler.jsonc, open-next.config.ts, scripts npm cf-preview/cf-deploy). Déploiement effectif à faire par LS (wrangler login).
