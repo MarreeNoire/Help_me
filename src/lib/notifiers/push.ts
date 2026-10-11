@@ -27,11 +27,27 @@ async function targetsFor(contact: Contact, ctx: NotifyContext): Promise<Target[
     targets.push({ sub, source });
   };
 
-  if (contact.linked_user_id) {
+  let targetUserId = contact.linked_user_id;
+
+  // Si pas encore de linked_user_id, chercher par numéro de téléphone
+  if (!targetUserId && contact.phone) {
+    const cDigits = contact.phone.replace(/[^\d]/g, "");
+    if (cDigits.length >= 8) {
+      const { data: profs } = await ctx.admin.from("profiles").select("id,phone");
+      const match = (profs ?? []).find((p) => {
+        if (!p.phone) return false;
+        const pDigits = p.phone.replace(/[^\d]/g, "");
+        return cDigits === pDigits || cDigits.endsWith(pDigits) || pDigits.endsWith(cDigits);
+      });
+      if (match) targetUserId = match.id;
+    }
+  }
+
+  if (targetUserId) {
     const { data } = await ctx.admin
       .from("push_devices")
       .select("subscription")
-      .eq("user_id", contact.linked_user_id);
+      .eq("user_id", targetUserId);
     (data ?? []).forEach((d) => add(d.subscription as Sub, "device"));
   }
   if (contact.push_subscription) add(contact.push_subscription as Sub, "contact");

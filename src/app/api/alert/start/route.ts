@@ -78,7 +78,35 @@ export async function POST(req: Request) {
       .insert({ alert_id: alert.id, lat: location.lat, lng: location.lng, accuracy: accuracy ?? null });
   }
 
-  const { data: contacts } = await admin.from("contacts").select("*").eq("user_id", user.id);
+  const { data: rawContacts } = await admin.from("contacts").select("*").eq("user_id", user.id);
+  const contacts = (rawContacts ?? []) as Contact[];
+
+  // Auto-lier les contacts au profil correspondant par numéro de téléphone
+  const { data: allProfiles } = await admin.from("profiles").select("id,phone");
+  for (const c of contacts) {
+    if (c.phone && (!c.linked_user_id || !c.confirmed)) {
+      const cDigits = c.phone.replace(/[^\d]/g, "");
+      if (cDigits.length >= 8) {
+        const matched = (allProfiles ?? []).find((p) => {
+          if (!p.phone || p.id === user.id) return false;
+          const pDigits = p.phone.replace(/[^\d]/g, "");
+          return (
+            cDigits === pDigits ||
+            cDigits.endsWith(pDigits) ||
+            pDigits.endsWith(cDigits)
+          );
+        });
+        if (matched) {
+          c.linked_user_id = matched.id;
+          c.confirmed = true;
+          await admin
+            .from("contacts")
+            .update({ linked_user_id: matched.id, confirmed: true })
+            .eq("id", c.id);
+        }
+      }
+    }
+  }
 
   const ctx = {
     admin,
@@ -90,7 +118,7 @@ export async function POST(req: Request) {
   };
 
   await Promise.allSettled([
-    notifyAlertStart(ctx, (contacts ?? []) as Contact[]),
+    notifyAlertStart(ctx, contacts),
     notifyAuthorities(ctx),
   ]);
 

@@ -26,7 +26,7 @@ export async function notifyAlertStart(ctx: NotifyContext, contacts: Contact[]) 
 
   await Promise.all(
     contacts
-      .filter((c) => c.confirmed)
+      .filter((c) => c.confirmed || Boolean(c.linked_user_id) || Boolean(c.phone) || Boolean(c.push_subscription))
       .map(async (contact) => {
         const results = await Promise.all(
           notifiers.map(async (n) => {

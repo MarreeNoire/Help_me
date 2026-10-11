@@ -40,13 +40,21 @@ export default function ContactsPage() {
     e.preventDefault();
     if (!userId) return;
     setError(null);
-    const { error } = await supabase
-      .from("contacts")
-      .insert({ user_id: userId, name: name.trim(), phone: phone.trim() || null, priority: contacts.length + 1 });
-    if (error) return setError("Impossible d'ajouter ce proche.");
-    setName("");
-    setPhone("");
-    load();
+    try {
+      const res = await fetch("/api/contacts/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), phone: phone.trim() || null }),
+      });
+      if (!res.ok) {
+        return setError("Impossible d'ajouter ce proche.");
+      }
+      setName("");
+      setPhone("");
+      load();
+    } catch {
+      setError("Erreur réseau. Réessaie.");
+    }
   }
 
   async function remove(id: string) {

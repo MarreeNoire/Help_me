@@ -53,12 +53,19 @@ export default function OnboardingPage() {
     if (!userId) return;
     setError(null);
     setLoading(true);
-    const { error } = await supabase
-      .from("contacts")
-      .insert({ user_id: userId, name: cName.trim(), phone: cPhone.trim() || null });
-    setLoading(false);
-    if (error) return setError("Impossible d'ajouter ce proche. Réessaie.");
-    setStep(3);
+    try {
+      const res = await fetch("/api/contacts/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: cName.trim(), phone: cPhone.trim() || null }),
+      });
+      setLoading(false);
+      if (!res.ok) return setError("Impossible d'ajouter ce proche. Réessaie.");
+      setStep(3);
+    } catch {
+      setLoading(false);
+      setError("Erreur réseau. Réessaie.");
+    }
   }
 
   function askGeo() {

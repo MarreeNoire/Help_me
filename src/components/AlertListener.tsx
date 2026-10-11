@@ -46,6 +46,32 @@ export default function AlertListener({ userId }: { userId: string }) {
     };
   }, [show]);
 
+  // Interroge l'API gardien toutes les 3 secondes pour détecter immédiatement toute alerte
+  useEffect(() => {
+    let stop = false;
+    async function checkGuardianAlert() {
+      try {
+        const res = await fetch("/api/guardian/active-alert", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.alertId && !stop) {
+            show(data.alertId);
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+
+    checkGuardianAlert();
+    const interval = setInterval(checkGuardianAlert, 3000);
+
+    return () => {
+      stop = true;
+      clearInterval(interval);
+    };
+  }, [show]);
+
   useEffect(() => {
     dismissed.current = new Set(readDismissed());
 
