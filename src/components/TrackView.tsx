@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import LiveMap from "./LiveMap";
 import { EMERGENCY, directionsLink, timeAgo } from "@/lib/utils";
+import { startAlarm, unlockAudio } from "@/lib/alarm";
 
 type TrackData = {
   status: "active" | "resolved" | "cancelled";
@@ -16,7 +17,22 @@ type TrackData = {
 export default function TrackView({ token }: { token: string }) {
   const [data, setData] = useState<TrackData | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [muted, setMuted] = useState(false);
   const [, setTick] = useState(0);
+
+  // Débloque l'audio sur la première interaction
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener("pointerdown", unlock, { once: true });
+    return () => window.removeEventListener("pointerdown", unlock);
+  }, []);
+
+  const active = data?.status === "active";
+
+  useEffect(() => {
+    if (!active || muted) return;
+    return startAlarm();
+  }, [active, muted]);
 
   useEffect(() => {
     let stop = false;
@@ -54,7 +70,6 @@ export default function TrackView({ token }: { token: string }) {
 
   if (!data) return <p className="p-6 text-center text-white/60">Chargement…</p>;
 
-  const active = data.status === "active";
   const last = data.locations[data.locations.length - 1];
 
   if (!active) {
@@ -85,6 +100,17 @@ export default function TrackView({ token }: { token: string }) {
       )}
 
       <div className="grid gap-2">
+        <button
+          type="button"
+          onClick={() => setMuted((m) => !m)}
+          className={`w-full rounded-2xl py-3 px-4 font-bold text-base transition flex items-center justify-center gap-2 ${
+            muted
+              ? "bg-white/20 text-white hover:bg-white/30"
+              : "bg-white text-red-700 hover:bg-neutral-100 animate-pulse"
+          }`}
+        >
+          {muted ? "🔊 Réactiver la sirène SOS" : "🔇 Couper la sirène SOS"}
+        </button>
         {data.phone && (
           <a className="btn-primary" href={`tel:${data.phone}`}>
             📞 Appeler {data.name}

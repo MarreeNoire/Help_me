@@ -32,6 +32,20 @@ export default function AlertListener({ userId }: { userId: string }) {
     return () => window.removeEventListener("pointerdown", unlock);
   }, []);
 
+  // Écoute les messages du Service Worker en cas de push
+  useEffect(() => {
+    if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === "SOS_ALERT_TRIGGERED" && event.data.alertId) {
+        show(event.data.alertId);
+      }
+    };
+    navigator.serviceWorker.addEventListener("message", handleMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener("message", handleMessage);
+    };
+  }, [show]);
+
   useEffect(() => {
     dismissed.current = new Set(readDismissed());
 

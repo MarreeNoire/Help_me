@@ -92,10 +92,12 @@ export default function GuardianAlertView({
 
   const active = info?.status === "active";
 
+  const [muted, setMuted] = useState(false);
+
   useEffect(() => {
-    if (!alarm || !active) return;
+    if (!alarm || !active || muted) return;
     return startAlarm();
-  }, [alarm, active]);
+  }, [alarm, active, muted]);
 
   if (missing) {
     return (
@@ -147,6 +149,19 @@ export default function GuardianAlertView({
       )}
 
       <div className="grid gap-2">
+        {alarm && (
+          <button
+            type="button"
+            onClick={() => setMuted((m) => !m)}
+            className={`w-full rounded-2xl py-3 px-4 font-bold text-base transition flex items-center justify-center gap-2 ${
+              muted
+                ? "bg-white/20 text-white hover:bg-white/30"
+                : "bg-white text-red-700 hover:bg-neutral-100 animate-pulse"
+            }`}
+          >
+            {muted ? "🔊 Réactiver la sirène SOS" : "🔇 Couper la sirène SOS"}
+          </button>
+        )}
         {info.phone && (
           <a className="btn-light" href={`tel:${info.phone}`}>
             📞 Appeler {info.name}

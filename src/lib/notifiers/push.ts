@@ -83,6 +83,8 @@ export const pushNotifier: Notifier = {
       body: "Appuie pour voir sa position en direct.",
       url,
       tag: `alert-${ctx.alert.id}`,
+      sound: "/alarm.wav",
+      alertId: ctx.alert.id,
     });
     return ok ? {} : null;
   },
