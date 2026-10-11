@@ -38,13 +38,24 @@ export default function SosButton({
   const [count, setCount] = useState(COUNTDOWN_S);
   const [alert, setAlert] = useState<ActiveAlertPayload | null>(null);
   const [offlineInfo, setOfflineInfo] = useState<{ pos: LatLng | null; reason: string } | null>(null);
+  const [tapHint, setTapHint] = useState(false);
 
   const holdStart = useRef(0);
   const raf = useRef(0);
+  const isHoldingRef = useRef(false);
+  const progressRef = useRef(0);
+  const tapHintTimeout = useRef<NodeJS.Timeout | null>(null);
   const watchId = useRef<number | null>(null);
   const lastSent = useRef(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wake = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (tapHintTimeout.current) clearTimeout(tapHintTimeout.current);
+      cancelAnimationFrame(raf.current);
+    };
+  }, []);
 
   /* ---------- Suivi GPS pendant l'alerte ---------- */
   const startTracking = useCallback((alertId: string) => {
@@ -150,20 +161,27 @@ export default function SosButton({
 
   /* ---------- Appui long ---------- */
   function cancelHold(reset = true) {
+    isHoldingRef.current = false;
     cancelAnimationFrame(raf.current);
     if (reset) {
       setPhase("idle");
       setProgress(0);
+      progressRef.current = 0;
     }
   }
 
   function startHold() {
     if (phase !== "idle") return;
+    isHoldingRef.current = true;
+    setTapHint(false);
     setPhase("holding");
     holdStart.current = performance.now();
     const tick = () => {
-      const p = Math.min(1, (performance.now() - holdStart.current) / HOLD_MS);
+      if (!isHoldingRef.current) return;
+      const elapsed = performance.now() - holdStart.current;
+      const p = Math.min(1, elapsed / HOLD_MS);
       setProgress(p);
+      progressRef.current = p;
       if (p >= 1) {
         cancelHold(false);
         if (navigator.vibrate) navigator.vibrate(200);
@@ -174,6 +192,70 @@ export default function SosButton({
       }
     };
     raf.current = requestAnimationFrame(tick);
+  }
+
+  function handlePointerDown(e: React.PointerEvent<HTMLButtonElement>) {
+    if (phase !== "idle") return;
+    e.preventDefault();
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      /* ignore */
+    }
+    startHold();
+  }
+
+  function handlePointerUp(e: React.PointerEvent<HTMLButtonElement>) {
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      /* ignore */
+    }
+    if (isHoldingRef.current) {
+      const reached = progressRef.current >= 1;
+      cancelHold(!reached);
+      if (!reached) {
+        setTapHint(true);
+        if (tapHintTimeout.current) clearTimeout(tapHintTimeout.current);
+        tapHintTimeout.current = setTimeout(() => setTapHint(false), 3000);
+        if (navigator.vibrate) navigator.vibrate(50);
+      }
+    }
+  }
+
+  function handlePointerCancel(e: React.PointerEvent<HTMLButtonElement>) {
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      /* ignore */
+    }
+    if (isHoldingRef.current) {
+      cancelHold();
+    }
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLButtonElement>) {
+    if (!isHoldingRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const dist = Math.hypot(e.clientX - centerX, e.clientY - centerY);
+    if (dist > 160) {
+      cancelHold();
+    }
+  }
+
+  function handleClick(e: React.MouseEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    if (phase === "idle" && !isHoldingRef.current) {
+      setTapHint(true);
+      if (tapHintTimeout.current) clearTimeout(tapHintTimeout.current);
+      tapHintTimeout.current = setTimeout(() => setTapHint(false), 3000);
+    }
   }
 
   /* ---------- Compte à rebours ---------- */
@@ -292,7 +374,7 @@ export default function SosButton({
   // idle / holding
   const holding = phase === "holding";
   return (
-    <div className="flex flex-col items-center gap-6 px-4">
+    <div className="flex flex-col items-center gap-6 px-4 select-none">
       {!hasContacts && (
         <a
           href="/contacts"
@@ -302,8 +384,8 @@ export default function SosButton({
         </a>
       )}
 
-      <div className="relative flex h-72 w-72 items-center justify-center">
-        <svg className="absolute inset-0 -rotate-90" viewBox="0 0 288 288">
+      <div className="relative flex h-72 w-72 items-center justify-center select-none">
+        <svg className="pointer-events-none absolute inset-0 -rotate-90 select-none" viewBox="0 0 288 288">
           <circle cx="144" cy="144" r={RING_R} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="10" />
           <circle
             cx="144"
@@ -319,22 +401,31 @@ export default function SosButton({
         </svg>
         <button
           aria-label="Bouton SOS : maintiens appuyé 2 secondes"
-          onPointerDown={startHold}
-          onPointerUp={() => holding && cancelHold()}
-          onPointerLeave={() => holding && cancelHold()}
-          onPointerCancel={() => holding && cancelHold()}
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onPointerMove={handlePointerMove}
+          onClick={handleClick}
           onContextMenu={(e) => e.preventDefault()}
           style={{ touchAction: "none", WebkitTouchCallout: "none", userSelect: "none" }}
-          className={`flex h-56 w-56 items-center justify-center rounded-full bg-red-600 text-6xl font-black tracking-tight shadow-2xl transition-transform ${
-            holding ? "scale-95 bg-red-500" : "sos-idle"
+          className={`flex h-56 w-56 select-none items-center justify-center rounded-full bg-red-600 text-6xl font-black tracking-tight shadow-2xl transition-transform ${
+            holding ? "scale-95 bg-red-500" : tapHint ? "animate-shake bg-red-600" : "sos-idle"
           }`}
         >
           SOS
         </button>
       </div>
 
-      <p className="text-center text-white/70">
-        {holding ? "Continue d'appuyer…" : "Maintiens le bouton appuyé 2 secondes"}
+      <p
+        className={`text-center font-medium select-none transition-colors ${
+          tapHint ? "text-amber-400 animate-shake" : "text-white/70"
+        }`}
+      >
+        {holding
+          ? "Continue d'appuyer…"
+          : tapHint
+          ? "⚠️ Maintiens le bouton appuyé 2 secondes !"
+          : "Maintiens le bouton appuyé 2 secondes"}
       </p>
 
       <div className="grid w-full grid-cols-3 gap-2">

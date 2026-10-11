@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/", label: "SOS", icon: "🆘" },
+  { href: "/", label: "Accueil", icon: "🚨" },
   { href: "/contacts", label: "Proches", icon: "👥" },
   { href: "/protect", label: "Je protège", icon: "🛡️" },
   { href: "/history", label: "Historique", icon: "🕘" },
@@ -15,7 +15,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-neutral-950/95 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-neutral-950/95 backdrop-blur select-none"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="mx-auto flex max-w-md">

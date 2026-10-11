@@ -8,7 +8,13 @@
     color-scheme: dark;
   }
   body {
-    @apply bg-neutral-950 text-white antialiased;
+    @apply bg-neutral-950 text-white antialiased select-none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input, textarea {
+    -webkit-user-select: text;
+    user-select: text;
   }
 }
 
@@ -77,4 +83,14 @@
 
 .sos-idle {
   animation: sos-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
 }
