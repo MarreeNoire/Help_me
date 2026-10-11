@@ -16,7 +16,7 @@ Le projet démarre sans budget. **N'introduis AUCUN service payant** (pas de Twi
 
 | Besoin | Solution retenue (gratuite) |
 |---|---|
-| Framework / hébergement | Next.js 15 (App Router) + Vercel Hobby |
+| Framework / hébergement | Next.js 15 (App Router) + Vercel Hobby ou Cloudflare Workers (OpenNext) |
 | BDD / Auth / Realtime | Supabase Free |
 | Alerte automatique n°1 | Telegram Bot API (avec position en direct) |
 | Alerte automatique n°2 | Web Push (lib `web-push`, clés VAPID) |
@@ -101,6 +101,15 @@ npm run dev   # http://localhost:3000
 ```
 Pour tester le push et la géolocalisation sur téléphone, il faut du HTTPS (déployer sur Vercel ou utiliser un tunnel). `localhost` est accepté sur le PC.
 
+Déploiement Cloudflare Workers (gratuit, alternative à Vercel) :
+
+```bash
+npm run cf-deploy        # build OpenNext + déploiement
+# Secrets : npx wrangler secret put <NAME> (une fois par variable)
+# Vars publiques client (NEXT_PUBLIC_*) : séc de wrangler.jsonc (vars) ou dashboard
+```
+Le premier déploiement doit être fait PAR LS après `wrangler login` (OAuth navigateur). Config : wrangler.jsonc + open-next.config.ts.
+
 Webhook Telegram (après déploiement) :
 `https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://TON-DOMAINE/api/telegram/webhook&secret_token=<TELEGRAM_WEBHOOK_SECRET>`
 
@@ -135,5 +144,7 @@ Anti-pause Supabase (gratuit) : tâche cron-job.org sur `https://TON-DOMAINE/api
 - [ ] Tests (e2e du flux d'alerte)
 
 ## 12. Journal des modifications
+
+- 2026-10-10 : Ajout du support de déploiement Cloudflare Workers via @opennextjs/cloudflare (wrangler.jsonc, open-next.config.ts, scripts npm cf-preview/cf-deploy). Déploiement effectif à faire par LS (wrangler login).
 
 - 2026-10-09 : Création initiale du projet (structure complète : auth, onboarding, bouton SOS, contacts, notifiers Telegram + Push, suivi live, invitations, réception in-app, PWA, schéma SQL). Code écrit sans exécution locale : lancer `npm install` puis `npm run dev` et corriger d'éventuelles erreurs de build.

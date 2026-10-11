@@ -1,0 +1,18 @@
+// Cloudflare Workers — Help_me (Next.js via OpenNext)
+// Déploiement : npx opennextjs-cloudflare build && npx opennextjs-cloudflare deploy
+// Les secrets (Supabase, Telegram, VAPID) : npx wrangler secret put <NAME>
+// cf https://opennext.js/cloudflare
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "help-me",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+}
